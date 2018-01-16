@@ -1,0 +1,4 @@
+repo: aff9f358a8f090fd3092032d2ab53a3663606547
+node: b9ad73e9340b674af42af64217bc307f25cdb4d7
+branch: default
+tag: 3.0-BETA5
