@@ -1,0 +1,38 @@
+From 453c7122d340573abc376372cd112fe2fd85f1ab Mon Sep 17 00:00:00 2001
+From: Tim Braun <tim.braun@librestream.com>
+Date: Fri, 1 Nov 2013 11:35:44 -0500
+Subject: [PATCH 1/4] More standardish header file locations
+
+---
+ src/iperf.h | 1 +
+ src/net.c   | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/iperf.h b/src/iperf.h
+index 9639eda..04673dc 100644
+--- a/src/iperf.h
++++ b/src/iperf.h
+@@ -12,6 +12,7 @@
+ 
+ #include <sys/time.h>
+ #include <sys/types.h>
++#include <sys/select.h>
+ #include <stdint.h>
+ #include <sys/socket.h>
+ #include <netinet/tcp.h>
+diff --git a/src/net.c b/src/net.c
+index 460c0bd..751a8dc 100644
+--- a/src/net.c
++++ b/src/net.c
+@@ -18,7 +18,7 @@
+ #include <assert.h>
+ #include <netdb.h>
+ #include <string.h>
+-#include <sys/fcntl.h>
++#include <fcntl.h>
+ 
+ #ifdef linux
+ #include <sys/sendfile.h>
+-- 
+1.8.4
+

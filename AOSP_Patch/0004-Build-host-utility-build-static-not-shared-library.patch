@@ -1,0 +1,101 @@
+From b4de7da4f8254b9c3d382869e469ce92e5bc25fa Mon Sep 17 00:00:00 2001
+From: Tim Braun <tim.braun@librestream.com>
+Date: Mon, 4 Nov 2013 10:01:37 -0600
+Subject: [PATCH 4/4] Build host utility, build static not shared library
+
+Change-Id: I22629da3c55c457a2dd875805f2e1ef909393e55
+---
+ src/Android.mk | 45 +++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 37 insertions(+), 8 deletions(-)
+
+diff --git a/src/Android.mk b/src/Android.mk
+index 0fcc5e5..c697b0b 100644
+--- a/src/Android.mk
++++ b/src/Android.mk
+@@ -4,9 +4,7 @@ LOCAL_PATH := $(call my-dir)
+ #########################
+ # Build the libiperf library
+ 
+-include $(CLEAR_VARS)
+-
+-LOCAL_SRC_FILES := \
++iperf_lib_src_files := \
+ 	cjson.c \
+ 	iperf_api.c \
+ 	iperf_error.c \
+@@ -21,15 +19,37 @@ LOCAL_SRC_FILES := \
+ 	tcp_window_size.c \
+ 	timer.c \
+ 	units.c 	
++iperf_lib_static_libs := liblog
++
++include $(CLEAR_VARS)
++
++LOCAL_SRC_FILES := \
++	$(iperf_lib_src_files)
+ 
+ LOCAL_C_INCLUDES := $(LOCAL_PATH)
+ LOCAL_CFLAGS := -O2 -W -Wall \
+ 	-DHAVE_CONFIG_H
+ # LOCAL_PRELINK_MODULE := false
++LOCAL_STATIC_LIBRARIES := $(iperf_lib_static_libs)
++LOCAL_MODULE := libiperf
++LOCAL_MODULE_TAGS := eng
++
++include $(BUILD_STATIC_LIBRARY)
++
++
++include $(CLEAR_VARS)
++
++LOCAL_SRC_FILES := \
++	$(iperf_lib_src_files)
++
++LOCAL_C_INCLUDES := $(LOCAL_PATH)
++LOCAL_CFLAGS := -O2 -W -Wall \
++	-DHAVE_CONFIG_H
+ LOCAL_MODULE := libiperf
++LOCAL_STATIC_LIBRARIES := $(iperf_lib_static_libs)
+ LOCAL_MODULE_TAGS := eng
+ 
+-include $(BUILD_SHARED_LIBRARY)
++include $(BUILD_HOST_STATIC_LIBRARY)
+ 
+ #########################
+ # Build the iperf binary
+@@ -37,8 +57,7 @@ include $(BUILD_SHARED_LIBRARY)
+ iperf_src_files :=  \
+ 	main.c
+ 
+-iperf_shared_libraries := \
+-	libiperf
++iperf_static_libs := libiperf liblog
+ 
+ iperf_cflags := -O2 -W -Wall \
+ 	-DHAVE_CONFIG_H
+@@ -46,11 +65,21 @@ iperf_cflags := -O2 -W -Wall \
+ include $(CLEAR_VARS)
+ 
+ LOCAL_SRC_FILES := $(iperf_src_files)
+-# LOCAL_C_INCLUDES := $(iperf_c_includes)
++LOCAL_C_INCLUDES := $(LOCAL_PATH)
+ LOCAL_CFLAGS := $(iperf_cflags)
+-# LOCAL_SYSTEM_SHARED_LIBRARIES := $(e2fsck_system_shared_libraries)
+ LOCAL_SHARED_LIBRARIES := $(iperf_shared_libraries)
++LOCAL_STATIC_LIBRARIES := $(iperf_static_libs)
+ LOCAL_MODULE := iperf
+ LOCAL_MODULE_TAGS := eng
+ include $(BUILD_EXECUTABLE)
+ 
++include $(CLEAR_VARS)
++
++LOCAL_SRC_FILES := $(iperf_src_files)
++LOCAL_C_INCLUDES := $(LOCAL_PATH)
++LOCAL_CFLAGS := $(iperf_cflags)
++LOCAL_STATIC_LIBRARIES := $(iperf_static_libs) $(iperf_shared_libraries)
++LOCAL_MODULE := iperf
++LOCAL_MODULE_TAGS := eng
++include $(BUILD_HOST_EXECUTABLE)
++
+-- 
+1.8.4
+

@@ -1,0 +1,151 @@
+From cf5eb17589be3cd047ddea96ca29901e0126b7b4 Mon Sep 17 00:00:00 2001
+From: Tim Braun <tim.braun@librestream.com>
+Date: Fri, 1 Nov 2013 11:39:36 -0500
+Subject: [PATCH 2/4] Initial Android port
+
+---
+ Android.mk     |  1 +
+ src/Android.mk | 56 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ src/config.h   | 59 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 116 insertions(+)
+ create mode 100644 Android.mk
+ create mode 100644 src/Android.mk
+ create mode 100644 src/config.h
+
+diff --git a/Android.mk b/Android.mk
+new file mode 100644
+index 0000000..5053e7d
+--- /dev/null
++++ b/Android.mk
+@@ -0,0 +1 @@
++include $(call all-subdir-makefiles)
+diff --git a/src/Android.mk b/src/Android.mk
+new file mode 100644
+index 0000000..0fcc5e5
+--- /dev/null
++++ b/src/Android.mk
+@@ -0,0 +1,56 @@
++
++LOCAL_PATH := $(call my-dir)
++
++#########################
++# Build the libiperf library
++
++include $(CLEAR_VARS)
++
++LOCAL_SRC_FILES := \
++	cjson.c \
++	iperf_api.c \
++	iperf_error.c \
++	iperf_client_api.c \
++	iperf_server_api.c \
++	iperf_tcp.c \
++	iperf_udp.c \
++	iperf_util.c \
++	locale.c \
++	net.c \
++	tcp_info.c \
++	tcp_window_size.c \
++	timer.c \
++	units.c 	
++
++LOCAL_C_INCLUDES := $(LOCAL_PATH)
++LOCAL_CFLAGS := -O2 -W -Wall \
++	-DHAVE_CONFIG_H
++# LOCAL_PRELINK_MODULE := false
++LOCAL_MODULE := libiperf
++LOCAL_MODULE_TAGS := eng
++
++include $(BUILD_SHARED_LIBRARY)
++
++#########################
++# Build the iperf binary
++
++iperf_src_files :=  \
++	main.c
++
++iperf_shared_libraries := \
++	libiperf
++
++iperf_cflags := -O2 -W -Wall \
++	-DHAVE_CONFIG_H
++
++include $(CLEAR_VARS)
++
++LOCAL_SRC_FILES := $(iperf_src_files)
++# LOCAL_C_INCLUDES := $(iperf_c_includes)
++LOCAL_CFLAGS := $(iperf_cflags)
++# LOCAL_SYSTEM_SHARED_LIBRARIES := $(e2fsck_system_shared_libraries)
++LOCAL_SHARED_LIBRARIES := $(iperf_shared_libraries)
++LOCAL_MODULE := iperf
++LOCAL_MODULE_TAGS := eng
++include $(BUILD_EXECUTABLE)
++
+diff --git a/src/config.h b/src/config.h
+new file mode 100644
+index 0000000..77cc0f2
+--- /dev/null
++++ b/src/config.h
+@@ -0,0 +1,59 @@
++/* src/config.h.  Generated from config.h.in by configure.  */
++/* src/config.h.in.  Generated from configure.ac by autoheader.  */
++
++/* Define to 1 if you have the <dlfcn.h> header file. */
++#define HAVE_DLFCN_H 1
++
++/* Define to 1 if you have the <inttypes.h> header file. */
++#define HAVE_INTTYPES_H 1
++
++/* Define to 1 if you have the <memory.h> header file. */
++#define HAVE_MEMORY_H 1
++
++/* Define to 1 if you have the <stdint.h> header file. */
++#define HAVE_STDINT_H 1
++
++/* Define to 1 if you have the <stdlib.h> header file. */
++#define HAVE_STDLIB_H 1
++
++/* Define to 1 if you have the <strings.h> header file. */
++#define HAVE_STRINGS_H 1
++
++/* Define to 1 if you have the <string.h> header file. */
++#define HAVE_STRING_H 1
++
++/* Define to 1 if you have the <sys/stat.h> header file. */
++#define HAVE_SYS_STAT_H 1
++
++/* Define to 1 if you have the <sys/types.h> header file. */
++#define HAVE_SYS_TYPES_H 1
++
++/* Define to 1 if you have the <unistd.h> header file. */
++#define HAVE_UNISTD_H 1
++
++/* Name of package */
++#define PACKAGE "iperf"
++
++/* Define to the address where bug reports for this package should be sent. */
++#define PACKAGE_BUGREPORT "iperf-users@lists.sourceforge.net"
++
++/* Define to the full name of this package. */
++#define PACKAGE_NAME "iperf"
++
++/* Define to the full name and version of this package. */
++#define PACKAGE_STRING "iperf 3.0a4"
++
++/* Define to the one symbol short name of this package. */
++#define PACKAGE_TARNAME "iperf"
++
++/* Define to the version of this package. */
++#define PACKAGE_VERSION "3.0a4"
++
++/* Define to 1 if you have the ANSI C header files. */
++#define STDC_HEADERS 1
++
++/* Version number of package */
++#define VERSION "3.0a4"
++
++/* Define to empty if `const' does not conform to ANSI C. */
++/* #undef const */
+-- 
+1.8.4
+

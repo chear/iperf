@@ -46,6 +46,14 @@
 jmp_buf env;            /* to handle longjmp on signal */
 
 
+#if defined(ANDROID)
+#define LOGTAG "iperf"
+#include <cutils/log.h>
+#else
+#define LOGE(x, ...)
+#endif
+
+
 /* Forwards. */
 static int send_parameters(struct iperf_test *test);
 static int get_parameters(struct iperf_test *test);
@@ -383,6 +391,7 @@ iperf_on_connect(struct iperf_test *test)
 void
 iperf_on_test_finish(struct iperf_test *test)
 {
+    test = test;/* unused parameter */  
 }
 
 
@@ -1408,7 +1417,7 @@ iperf_print_intermediate(struct iperf_test *test)
 	if (test->protocol->id == Ptcp && has_tcpinfo_retransmits())
 	    retransmits += irp->this_retrans;
     }
-    if (bytes <=0) { /* this can happen if timer goes off just when client exits */
+    if ((int64_t )bytes < 0) { /* this can happen if timer goes off just when client exits */
 	iperf_err(test, "error: bytes <= 0!");
         return;
     }
@@ -1692,7 +1701,12 @@ iperf_new_stream(struct iperf_test *test, int s)
 {
     int i;
     struct iperf_stream *sp;
+#if defined(HAVE_ANDROID_OS)
+    char template[] = "/cache/iperf3.XXXXXX";
+#else
     char template[] = "/tmp/iperf3.XXXXXX";
+#endif
+
 
     h_errno = 0;
 

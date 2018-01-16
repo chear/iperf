@@ -18,7 +18,7 @@
 #include <assert.h>
 #include <netdb.h>
 #include <string.h>
-#include <sys/fcntl.h>
+#include <fcntl.h>
 
 #ifdef linux
 #include <sys/sendfile.h>

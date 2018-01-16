@@ -1,0 +1,113 @@
+From 0962742c07100d06a77a7dfb88ecf0d31f91e127 Mon Sep 17 00:00:00 2001
+From: Tim Braun <tim.braun@librestream.com>
+Date: Mon, 4 Nov 2013 09:59:52 -0600
+Subject: [PATCH 3/4] Use /cache for temp files on Android, stop some compiler
+ warnings
+
+Change-Id: I319534121dd3e72ec762b49e321b0f58c3ad1dba
+---
+ src/iperf_api.c | 24 ++++++++++++++++++++++--
+ 1 file changed, 22 insertions(+), 2 deletions(-)
+
+diff --git a/src/iperf_api.c b/src/iperf_api.c
+index 68249c2..e196bfc 100644
+--- a/src/iperf_api.c
++++ b/src/iperf_api.c
+@@ -47,6 +47,12 @@
+ #include "iperf_util.h"
+ #include "locale.h"
+ 
++#if defined(ANDROID)
++#define LOGTAG "iperf"
++#include <cutils/log.h>
++#else
++#define LOGE(x, ...)
++#endif
+ 
+ /* Forwards. */
+ static int send_parameters(struct iperf_test *test);
+@@ -484,6 +490,7 @@ iperf_on_connect(struct iperf_test *test)
+ void
+ iperf_on_test_finish(struct iperf_test *test)
+ {
++	test = test;	/* unused parameter */
+ }
+ 
+ 
+@@ -1644,7 +1651,7 @@ iperf_print_intermediate(struct iperf_test *test)
+ 	if (test->sender && test->sender_has_retransmits)
+ 	    retransmits += irp->interval_retrans;
+     }
+-    if (bytes < 0) { /* this can happen if timer goes off just when client exits */
++    if ((int64_t )bytes < 0) { /* this can happen if timer goes off just when client exits */
+ 	iperf_err(test, "error: bytes < 0!");
+         return;
+     }
+@@ -1938,7 +1945,11 @@ iperf_new_stream(struct iperf_test *test, int s)
+ {
+     int i;
+     struct iperf_stream *sp;
++#if defined(HAVE_ANDROID_OS)
++    char template[] = "/cache/iperf3.XXXXXX";
++#else
+     char template[] = "/tmp/iperf3.XXXXXX";
++#endif
+ 
+     h_errno = 0;
+ 
+@@ -1955,6 +1966,8 @@ iperf_new_stream(struct iperf_test *test, int s)
+     sp->settings = test->settings;
+ 
+     if (!sp->result) {
++		LOGE("No memory for iperf_stream_result\n");
++
+         i_errno = IECREATESTREAM;
+         return NULL;
+     }
+@@ -1965,19 +1978,23 @@ iperf_new_stream(struct iperf_test *test, int s)
+     /* Create and randomize the buffer */
+     sp->buffer_fd = mkstemp(template);
+     if (sp->buffer_fd == -1) {
++		LOGE("Can't create buffer_sd by mkstemp");
+         i_errno = IECREATESTREAM;
+         return NULL;
+     }
+     if (unlink(template) < 0) {
++		LOGE("Can't unlink template %s\n", template);
+         i_errno = IECREATESTREAM;
+         return NULL;
+     }
+     if (ftruncate(sp->buffer_fd, test->settings->blksize) < 0) {
++		LOGE("Can't ftruncate buffer_fd\n");
+         i_errno = IECREATESTREAM;
+         return NULL;
+     }
+     sp->buffer = (char *) mmap(NULL, test->settings->blksize, PROT_READ|PROT_WRITE, MAP_PRIVATE, sp->buffer_fd, 0);
+     if (sp->buffer == MAP_FAILED) {
++		LOGE("Can't mmap buffer_fd\n");
+         i_errno = IECREATESTREAM;
+         return NULL;
+     }
+@@ -1994,6 +2011,7 @@ iperf_new_stream(struct iperf_test *test, int s)
+     if (test->diskfile_name != (char*) 0) {
+ 	sp->diskfile_fd = open(test->diskfile_name, test->sender ? O_RDONLY : (O_WRONLY|O_CREAT|O_TRUNC));
+ 	if (sp->diskfile_fd == -1) {
++		LOGE("Can't open diskfile %s\n", test->diskfile_name);
+ 	    i_errno = IEFILE;
+ 	    return NULL;
+ 	}
+@@ -2005,8 +2023,10 @@ iperf_new_stream(struct iperf_test *test, int s)
+         sp->diskfile_fd = -1;
+ 
+     /* Initialize stream */
+-    if (iperf_init_stream(sp, test) < 0)
++    if (iperf_init_stream(sp, test) < 0) {
++		LOGE("Can't init stream, err = %d - %s\n", errno, strerror(errno) );
+         return NULL;
++	}
+     iperf_add_stream(test, sp);
+ 
+     return sp;
+-- 
+1.8.4
+
