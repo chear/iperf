@@ -444,6 +444,12 @@ iperf_parse_arguments(struct iperf_test *test, int argc, char **argv)
     blksize = 0;
     server_flag = client_flag = 0;
     while ((ch = getopt_long(argc, argv, "p:f:i:DVJdvsc:ub:t:n:l:P:Rw:B:M:N6S:Zh", longopts, NULL)) != -1) {
+        fprintf(stderr, "chear ch ='%c' , %d  \n",ch,ch);
+        int ar = (int)ch;
+        if(ar == 255){
+            fprintf(stderr, "argument ar =%d  \n",ar); 
+            break;
+        }
         switch (ch) {
             case 'p':
                 test->server_port = atoi(optarg);
